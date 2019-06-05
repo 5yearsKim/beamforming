@@ -5,6 +5,7 @@
 using namespace std;
 
 #include "Beamform.h"
+#include "fft.h"
 
 
 Beamform::Beamform(){
@@ -15,10 +16,11 @@ Beamform::Beamform(){
 	fs = 44100;
 }
 Beamform::~Beamform(){
-	for (unsigned i = 0 ; i<n; i++){
+/*	for (unsigned i = 0 ; i<n; i++){
 		delete [] sgn[i];
 	}
 	delete [] sgn;
+	*/
 
 }
 
@@ -29,7 +31,7 @@ n(m_n), d(m_d), f(m_f), c(m_c), fs(m_fs) {
 
 void Beamform::get_signal(){
 	unsigned dlength = 10000;
-
+	sgn_len = dlength;
 	sgn = new signal_t*[n];
 	for (unsigned i = 0 ; i<n; i++){
 		sgn[i] = new signal_t[dlength];
@@ -47,7 +49,41 @@ void Beamform::get_signal(){
 
 }
 
-double estimate_DoA(){
+double Beamform::estimate_DoA(){
 
+	return 0;
+}
 
+double Beamform::gccphat(signal_t* x, signal_t* x_ref, size_t N, double fs){
+	unsigned new_N = nextPow2(N);
+	complex<double>* comp_x = new complex<double>[new_N];
+	complex<double>* comp_x_ref = new complex<double>[new_N];
+
+	for (unsigned i = 0; i<N; i++){
+		comp_x[i] = x[i];
+		comp_x_ref[i] = x_ref[i];
+	}
+	fft(comp_x, new_N, FORWARD);
+	fft(comp_x_ref,new_N,FORWARD);
+	for (unsigned i = 0; i<new_N; i++){
+		comp_x[i] = comp_x[i]*conj(comp_x_ref[i]);
+	}
+	fft(comp_x , new_N, INVERSE);
+
+	double max = 0;
+	int i_max = 0;
+	for (unsigned i = 0; i<new_N; i++){
+		if (comp_x[i].real()>max){
+			max = comp_x[i].real();
+			i_max = i;
+		}
+	}
+	if (i_max>N/2){
+		i_max =  i_max - (int)new_N;
+	}
+
+	delete[] comp_x;
+	delete[] comp_x_ref;
+
+	return (double)i_max / fs;
 }
