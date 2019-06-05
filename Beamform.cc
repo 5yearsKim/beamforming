@@ -14,16 +14,9 @@ Beamform::Beamform(){
 	f = 7200;
 	c = 340;
 	fs = 44100;
-	sgn_len = 0;
 }
 Beamform::~Beamform(){
-	if (!sgn_len){
-		for (unsigned i = 0 ; i<n; i++){
-			delete [] sgn[i];
-		}
-		delete [] sgn;
-		
-	}
+
 }
 
 Beamform::Beamform(unsigned m_n, double m_d, double m_f, double m_c, double m_fs):
@@ -33,10 +26,11 @@ n(m_n), d(m_d), f(m_f), c(m_c), fs(m_fs) {
 
 void Beamform::get_signal(){
 	unsigned dlength = 10000;
-	sgn_len = dlength;
-	sgn = new signal_t*[n];
+
+
 	for (unsigned i = 0 ; i<n; i++){
-		sgn[i] = new signal_t[dlength];
+		vector<signal_t> v(dlength);
+		sgn.push_back(v);
 	}
 
 	FILE *pFile = fopen("noisy_signal.txt", "r");
@@ -52,13 +46,13 @@ void Beamform::get_signal(){
 }
 
 double Beamform::estimate_DoA(){
-	if (!sgn_len){
+	if (!sgn.size()){
 		cout<<"error::get_signal first"<<endl;
 		return 0;
 	}
 	double tau_est(0);
 	for (unsigned i = 0; i<n-1 ; i++){
-		tau_est += gccphat(sgn[i+1], sgn[i], sgn_len, fs);
+		tau_est += gccphat(&sgn[i+1], &sgn[i], fs);
 	}
 	tau_est /= (n-1);
 
@@ -67,21 +61,22 @@ double Beamform::estimate_DoA(){
 	return Theta_est;
 }
 
-double Beamform::gccphat(signal_t* x, signal_t* x_ref, size_t N, double fs){
+double Beamform::gccphat(vector<signal_t>* x, vector<signal_t>* x_ref, double fs){
+	size_t N = x->size();
 	unsigned new_N = nextPow2(N);
-	complex<double>* comp_x = new complex<double>[new_N];
-	complex<double>* comp_x_ref = new complex<double>[new_N];
+	vector<complex<double>> comp_x(new_N) ;
+	vector<complex<double>> comp_x_ref(new_N);
 
 	for (unsigned i = 0; i<N; i++){
-		comp_x[i] = x[i];
-		comp_x_ref[i] = x_ref[i];
+		comp_x[i] = (*x)[i];
+		comp_x_ref[i] = (*x_ref)[i];
 	}
-	fft(comp_x, new_N, FORWARD);
-	fft(comp_x_ref,new_N,FORWARD);
+	fft(&comp_x,  FORWARD);
+	fft(&comp_x_ref,FORWARD);
 	for (unsigned i = 0; i<new_N; i++){
 		comp_x[i] = comp_x[i]*conj(comp_x_ref[i]);
 	}
-	fft(comp_x , new_N, INVERSE);
+	fft(&comp_x , INVERSE);
 
 	double max = 0;
 	int i_max = 0;
@@ -95,8 +90,6 @@ double Beamform::gccphat(signal_t* x, signal_t* x_ref, size_t N, double fs){
 		i_max =  i_max - (int)new_N;
 	}
 
-	delete[] comp_x;
-	delete[] comp_x_ref;
 
 	return (double)i_max / fs;
 }
