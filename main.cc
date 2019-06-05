@@ -10,7 +10,7 @@ using namespace std;
 #include "Dtype.h"
 
 int main(){
-   signal_t* tmp = new signal_t[30];
+/*   signal_t* tmp = new signal_t[30];
   signal_t* tmp2 = new signal_t[30];
   tmp[0] = 3;
   tmp[1] = 10;
@@ -18,7 +18,7 @@ int main(){
   tmp2[7] = 3;
   tmp2[8] = 10;
   tmp2[9] = 20;
-
+*/
 /*  fftrealloc(tmp, 30, nextPow2(30) );
   fft(tmp, nextPow2(30) , FORWARD);
 
@@ -27,10 +27,8 @@ int main(){
   }
 */
   Beamform bf;
-  bf.gccphat(tmp,tmp2, 30, 1);
-
-  delete [] tmp;
-  delete [] tmp2;
+  bf.get_signal();
+  cout<<bf.estimate_DoA()<<endl;
 
   return 0;
 }

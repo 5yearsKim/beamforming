@@ -14,14 +14,16 @@ Beamform::Beamform(){
 	f = 7200;
 	c = 340;
 	fs = 44100;
+	sgn_len = 0;
 }
 Beamform::~Beamform(){
-/*	for (unsigned i = 0 ; i<n; i++){
-		delete [] sgn[i];
+	if (!sgn_len){
+		for (unsigned i = 0 ; i<n; i++){
+			delete [] sgn[i];
+		}
+		delete [] sgn;
+		
 	}
-	delete [] sgn;
-	*/
-
 }
 
 Beamform::Beamform(unsigned m_n, double m_d, double m_f, double m_c, double m_fs):
@@ -50,8 +52,19 @@ void Beamform::get_signal(){
 }
 
 double Beamform::estimate_DoA(){
+	if (!sgn_len){
+		cout<<"error::get_signal first"<<endl;
+		return 0;
+	}
+	double tau_est(0);
+	for (unsigned i = 0; i<n-1 ; i++){
+		tau_est += gccphat(sgn[i+1], sgn[i], sgn_len, fs);
+	}
+	tau_est /= (n-1);
 
-	return 0;
+	double Theta_est = acos(c * tau_est / d);
+
+	return Theta_est;
 }
 
 double Beamform::gccphat(signal_t* x, signal_t* x_ref, size_t N, double fs){
