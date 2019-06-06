@@ -1,17 +1,17 @@
 #include "fft.h"
 
 
-void fft(vector<complex<double>> *sgn, int inv) {
+void fft(vector<complex<double>> &sgn, int inv) {
 	int i, j, j1, j2, k, iter, irem,  s, m, n1, n2, nxp, mxp, nxp2;
 	double arg, wr, wi, tr, ti, wpwr;
-	int n = nextPow2((*sgn).size());
-	(*sgn).resize(n);
+	int n = nextPow2((sgn).size());
+	sgn.resize(n);
 	double* fr = new double[n];
 	double* fi = new double[n];
 
 	for (int q = 0; q <n; q++){
-		fr[q] = (*sgn)[q].real();
-		fi[q] = (*sgn)[q].imag();
+		fr[q] = sgn[q].real();
+		fi[q] = sgn[q].imag();
 	}
 
 
@@ -69,7 +69,7 @@ void fft(vector<complex<double>> *sgn, int inv) {
 	}
 
 	for (int l = 0; l<n ; l++){
-		(*sgn)[l] = fr[l] + fi[l] * 1i;
+		sgn[l] = fr[l] + fi[l] * 1i;
 	}
 	delete [] fr;
 	delete [] fi;
@@ -84,8 +84,8 @@ int nextPow2(int n)
 
 
 //sub function of STFT
-vector<vector<complex<double>>> buffer_shape(vector<complex<double>>* sgn, size_t frm_len, size_t overlap){
-	size_t N = (*sgn).size();
+vector<vector<complex<double>>> buffer_shape(vector<complex<double>> &sgn, size_t frm_len, size_t overlap){
+	size_t N = sgn.size();
 	if (frm_len<overlap){
 		cout<<"underlap is not allowed for this simulation"<<endl;
 		exit(1); //we don't consider underlap for this simulation
@@ -95,7 +95,7 @@ vector<vector<complex<double>>> buffer_shape(vector<complex<double>>* sgn, size_
 	vector<vector<complex<double>>> buf;
 	for (unsigned i = 0; i<row; i++){
 			vector<complex<double>> v(frm_len);
-			memcpy(&v[0], &(*sgn)[(frm_len-overlap)*i] , min(frm_len, N - i*(frm_len-overlap)) * sizeof(complex<double>));
+			memcpy(&v[0], &sgn[(frm_len-overlap)*i] , min(frm_len, N - i*(frm_len-overlap)) * sizeof(complex<double>));
 			buf.push_back(v);
 	}
 	return buf;
@@ -103,8 +103,8 @@ vector<vector<complex<double>>> buffer_shape(vector<complex<double>>* sgn, size_
 }
 
 //Short Time Fourie Transform(signal, frame_lenght, overlap, window func )
-vector<vector<complex<double>>> STFT(vector<complex<double>>* sgn, size_t frm_len, size_t overlap, vector<complex<double>> *wnd){
-	if ((*wnd).size() != frm_len){
+vector<vector<complex<double>>> STFT(vector<complex<double>> &sgn, size_t frm_len, size_t overlap, vector<complex<double>> &wnd){
+	if ( wnd.size() != frm_len){
 		cout<<"window size not matched!"<<endl;
 		exit(1);
 	}
@@ -112,10 +112,10 @@ vector<vector<complex<double>>> STFT(vector<complex<double>>* sgn, size_t frm_le
 	vector<vector<complex<double>>>::iterator pos;
 	for (pos = buf.begin(); pos != buf.end(); pos++){
 		//mul(sgn .* wnd)
-		for(unsigned i = 0; i<(*wnd).size(); i++){
-			 (*pos)[i] = (*pos)[i] * (*wnd)[i];
+		for(unsigned i = 0; i<wnd.size(); i++){
+			 (*pos)[i] = (*pos)[i] * wnd[i];
 		}
-		fft(&(*pos),FORWARD);
+		fft(*pos,FORWARD);
 	}
 	return buf;
 }
@@ -130,17 +130,20 @@ vector<complex<double>> hann(size_t n){
 }
 
 //inverse short time Fourie tramnsform
-vector<complex<double>> iSTFT(vector<vector<complex<double>>>* sgn, size_t frm_len, size_t overlap){
-	unsigned row = (*sgn).size();
+vector<complex<double>> iSTFT(vector<vector<complex<double>>> &sgn, size_t frm_len, size_t overlap){
+	unsigned row = sgn.size();
 	vector<complex<double>> Isgn((frm_len - overlap) * row + overlap);
 	//strectchiing 2D vector to 1D vector
 	for (unsigned i = 0 ; i < row; i++){
-		fft(&((*sgn)[i]), INVERSE);
-		cout<<"\n\n"<<i<<"line result\n\n"<<endl;
+		fft(sgn[i], INVERSE);
 		for (unsigned j = 0; j<frm_len; j++){
-			cout<<(*sgn)[i][j]<<"  ";
-			Isgn[(frm_len - overlap)*i +j] += (*sgn)[i][j];
+			#ifdef DEBUG2
+			cout<<sgn[i][j]<<"  ";
+			#endif
+			Isgn[(frm_len - overlap)*i +j] += sgn[i][j];
 		}
 	}
+
+
 	return Isgn;
 }

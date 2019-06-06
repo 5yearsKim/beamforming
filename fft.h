@@ -23,11 +23,11 @@ using namespace std;
 #include "PARAM.h"
 #include "Dtype.h"
 
-void fft(vector<complex<double>> *sgn, int inv);
+void fft(vector<complex<double>> &sgn, int inv);
 int nextPow2(int n);
-vector<vector<complex<double>>> buffer_shape(vector<complex<double>>* sgn, size_t frm_len, size_t overlap);
-vector<vector<complex<double>>> STFT(vector<complex<double>>* sgn, size_t frm_len, size_t overlap, vector<complex<double>> *wnd);
+vector<vector<complex<double>>> buffer_shape(vector<complex<double>> &sgn, size_t frm_len, size_t overlap);
+vector<vector<complex<double>>> STFT(vector<complex<double>> &sgn, size_t frm_len, size_t overlap, vector<complex<double>> &wnd);
 vector<complex<double>> hann(size_t n);
-vector<complex<double>> iSTFT(vector<vector<complex<double>>>* sgn, size_t frm_len, size_t overlap);
+vector<complex<double>> iSTFT(vector<vector<complex<double>>> &sgn, size_t frm_len, size_t overlap);
 
 #endif

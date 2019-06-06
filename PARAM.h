@@ -6,6 +6,9 @@
 #define FORWARD 0
 #define INVERSE 1
 
+#define DSB 0
+#define FIXED 1
+
 
 
 
