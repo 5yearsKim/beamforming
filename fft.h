@@ -30,4 +30,7 @@ vector<vector<complex<double>>> STFT(vector<complex<double>> &sgn, size_t frm_le
 vector<complex<double>> hann(size_t n);
 vector<complex<double>> iSTFT(vector<vector<complex<double>>> &sgn, size_t frm_len, size_t overlap);
 
+
+vector<vector<double>> gen_arr_sig(vector<double> &in_sgn, unsigned N, double D, double Theta, double C, double fs);
+
 #endif

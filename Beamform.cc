@@ -1,15 +1,15 @@
 #include <iostream>
 #include <cmath>
 #include <complex>
-
-using namespace std;
+#include <fstream>
 
 #include "Beamform.h"
 #include "fft.h"
 
 
+
 Beamform::Beamform():
-n(4), d(0.02), f(7200), c(340), fs(44100), theta(m_PI/2 - 0.1), type(DSB){
+n(N_OF_SENSOR), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), type(DSB), DoA(DOA){
 
 }
 Beamform::~Beamform(){
@@ -17,29 +17,38 @@ Beamform::~Beamform(){
 }
 
 Beamform::Beamform(unsigned m_n, double m_d, double m_f, double m_c, double m_fs):
-n(m_n), d(m_d), f(m_f), c(m_c), fs(m_fs) , DoA(true), type(DSB){
+n(m_n), d(m_d), f(m_f), c(m_c), fs(m_fs) , DoA(true), type(DSB), theta(THETA_INPUT){
 
 }
 
 void Beamform::get_signal(){
-	unsigned dlength = 10000;
+	signal_t s;
+	ifstream in("1Dnoisy_signal.txt");
+	unsigned len_max = 100000;
+	if(in.is_open()){
+		while(!in.eof()){
+			in >>s;
+			sgn_1d_origin.push_back(s);
+			if (sgn_1d_origin.size()>len_max)
+				break;
+		}
+	}
+	cout<<theta<<endl;
+	sgn = gen_arr_sig(sgn_1d_origin, n , d ,theta, c,  fs);
 
-
-	for (unsigned i = 0 ; i<n; i++){
-		vector<signal_t> v(dlength);
-		sgn.push_back(v);
+	ofstream f("2Dnoisy_signal.txt");
+	for (unsigned  j= 0; j<sgn[0].size(); j++){
+		for (unsigned i=0; i<sgn.size(); i++){
+			f<< sgn[i][j]<<"  ";
+	//		cout<< sgn[i][j]<<"%%";
+		}
+		f<<"\n";
 	}
 
-	FILE *pFile = fopen("noisy_signal.txt", "r");
-	rewind(pFile);
-	for (unsigned i =0; i<dlength; i++){
-		fscanf(pFile, "%lf %lf %lf %lf", &sgn[0][i], &sgn[1][i],&sgn[2][i],&sgn[3][i] );
+	if(f.is_open()==true)
+	{
+		f.close();
 	}
-
-
-	fclose(pFile);
-
-
 }
 
 void Beamform::set_DoA(bool is_set){
@@ -49,7 +58,16 @@ void Beamform::set_DoA(bool is_set){
 		DoA = false;
 }
 
+void Beamform::status(){
+	for (unsigned i = 0 ; i < sgn_beamformed.size() ; i++){
+		cout << sgn_beamformed[i] << "  ";
+		if (!(i%10))
+			cout<<endl;
+	}
+	cout<<"\n\n\n"<<"theta:"<<theta<<endl;
 
+
+}
 
 double Beamform::estimate_DoA(){
 	if (!sgn.size()){
@@ -102,7 +120,6 @@ double Beamform::gccphat(vector<signal_t> &x, vector<signal_t> &x_ref, double fs
 
 
 vector<complex<double>> Beamform::get_weight(double F, int Type){
-	cout<<"start "<<endl;
 	vector<complex<double>> n_vec;
 
 	for (unsigned i = 0; i<n; i++){
@@ -153,6 +170,7 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 }
 
 vector<double> Beamform::beamform_Rx( ){
+
 // converting signal_t to complex
 	vector<vector<complex<double>>> m_sgn;
 	for (unsigned i = 0; i<sgn.size(); i++){
@@ -229,5 +247,11 @@ vector<double> Beamform::beamform_Rx( ){
 	for (unsigned i = 0; i < sig_out.size() ; i++){
 		sig_out[i] *= sqrt(pow_in/ pow_out);
   }
+	sgn_beamformed = sig_out;
 	return sig_out;
+}
+
+//beamforming transimission
+vector<vector<double>> Beamform::beamform_Tx(){
+	return  gen_arr_sig(sgn_beamformed, n, d,theta, c, fs);
 }

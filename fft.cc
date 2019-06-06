@@ -147,3 +147,27 @@ vector<complex<double>> iSTFT(vector<vector<complex<double>>> &sgn, size_t frm_l
 
 	return Isgn;
 }
+
+
+vector<vector<double>> gen_arr_sig(vector<double> &in_sgn, unsigned N, double D, double Theta, double C, double fs){
+  vector<double> tau(N);
+  for (unsigned i = 0; i<N; i++){
+    tau[i] = D*double(i)*abs(cos(Theta))*fs /C;
+		cout<<tau[i]<< "  ";
+  }
+  if (tau[N-1] > in_sgn.size() ){
+    cout<<"gen_arr_sig error::input is too sall or some value is wrong"<<endl;
+    exit(1);
+  }
+  vector<vector<double>> arr_sig;
+  //initialize arr_sig
+  for (unsigned i = 0; i<N; i++){
+    vector<double> v(in_sgn.size());
+    //    arr_signal(i, 1 + tau(i): end) = Signal(1 : end - (tau(i)));
+    for (unsigned j = int(round(tau[i])); j<in_sgn.size(); j++){
+      v[j] = in_sgn[ j - int(round(tau[i]))  ];
+    }
+    arr_sig.push_back(v);
+  }
+  return arr_sig;
+}

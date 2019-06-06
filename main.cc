@@ -36,6 +36,7 @@ int main(){
   bf.get_signal();
   vector<double> beam_rec;
   beam_rec = bf.beamform_Rx( );
+  bf.status();
 
 
 /*
