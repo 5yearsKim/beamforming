@@ -155,11 +155,11 @@ vector<vector<double>> gen_arr_sig(vector<double> &in_sgn, unsigned N, double D,
     tau[i] = D*double(i)*abs(cos(Theta))*fs /C;
 		cout<<tau[i]<< "  ";
   }
-  if (tau[N-1] > in_sgn.size() ){
+  if (tau[N-1] > in_sgn.size() || tau[0] > in_sgn.size() ){
     cout<<"gen_arr_sig error::input is too sall or some value is wrong"<<endl;
     exit(1);
   }
-  vector<vector<double>> arr_sig;
+  vector<vector<double>> arr_sig, arr_sig2;
   //initialize arr_sig
   for (unsigned i = 0; i<N; i++){
     vector<double> v(in_sgn.size());
@@ -167,7 +167,45 @@ vector<vector<double>> gen_arr_sig(vector<double> &in_sgn, unsigned N, double D,
     for (unsigned j = int(round(tau[i])); j<in_sgn.size(); j++){
       v[j] = in_sgn[ j - int(round(tau[i]))  ];
     }
-    arr_sig.push_back(v);
+		arr_sig.push_back(v);
   }
-  return arr_sig;
+	for (unsigned i = 0 ; i<N; i++)
+			arr_sig2.push_back(arr_sig[N - 1 - i]);
+	if (Theta <m_PI/2){		return arr_sig;		} 
+	else{	return arr_sig2;	}
+}
+
+
+
+double gccphat(vector<signal_t> &x, vector<signal_t> &x_ref, double fs){
+	size_t N = x.size();
+	unsigned new_N = nextPow2(N);
+	vector<complex<double>> comp_x(new_N) ;
+	vector<complex<double>> comp_x_ref(new_N);
+
+	for (unsigned i = 0; i<N; i++){
+		comp_x[i] = x[i];
+		comp_x_ref[i] = x_ref[i];
+	}
+	fft(comp_x,  FORWARD);
+	fft(comp_x_ref,FORWARD);
+	for (unsigned i = 0; i<new_N; i++){
+		comp_x[i] = comp_x[i]*conj(comp_x_ref[i]);
+	}
+	fft(comp_x , INVERSE);
+
+	double max = 0;
+	int i_max = 0;
+	for (unsigned i = 0; i<new_N; i++){
+		if (comp_x[i].real()>max){
+			max = comp_x[i].real();
+			i_max = i;
+		}
+	}
+	if (i_max>(int)N/2){
+		i_max =  i_max - (int)new_N;
+	}
+
+
+	return (double)i_max / fs;
 }

@@ -11,6 +11,7 @@ _a < _b ? _a : _b; })
 ({ __typeof__ (a) _a = (a); \
 __typeof__ (b) _b = (b); \
 _a > _b ? _a : _b; })
+
 ///////////////////////////////////////
 
 #include <cstring>
@@ -32,5 +33,6 @@ vector<complex<double>> iSTFT(vector<vector<complex<double>>> &sgn, size_t frm_l
 
 
 vector<vector<double>> gen_arr_sig(vector<double> &in_sgn, unsigned N, double D, double Theta, double C, double fs);
+double gccphat(vector<signal_t> &x, vector<signal_t> &x_ref, double fs);
 
 #endif

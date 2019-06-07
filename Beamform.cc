@@ -26,6 +26,7 @@ void Beamform::get_signal(){
 	ifstream in("1Dnoisy_signal.txt");
 	unsigned len_max = 100000;
 	if(in.is_open()){
+		cout<<"get_signal:getting signal successful"<<endl;
 		while(!in.eof()){
 			in >>s;
 			sgn_1d_origin.push_back(s);
@@ -33,8 +34,9 @@ void Beamform::get_signal(){
 				break;
 		}
 	}
-	cout<<theta<<endl;
+	cout<<"generating "<<n<<" x len"<<" 2D signal for simulation\n theta: = "<<theta<<endl;
 	sgn = gen_arr_sig(sgn_1d_origin, n , d ,theta, c,  fs);
+	if (sgn.size() >0){ cout<<"signal received successfully"<<endl;}
 
 	ofstream f("2Dnoisy_signal.txt");
 	for (unsigned  j= 0; j<sgn[0].size(); j++){
@@ -59,8 +61,8 @@ void Beamform::set_DoA(bool is_set){
 }
 
 void Beamform::status(){
-	for (unsigned i = 0 ; i < sgn_beamformed.size() ; i++){
-		cout << sgn_beamformed[i] << "  ";
+	for (unsigned i = 0 ; i < 1000 ; i++){
+		cout << i<<"  "<<sgn_1d_origin[i]<<"  "<<sgn_beamformed[i] << "  "<<endl;;
 		if (!(i%10))
 			cout<<endl;
 	}
@@ -83,39 +85,6 @@ double Beamform::estimate_DoA(){
 	double Theta_est = acos(c * tau_est / d);
 
 	return Theta_est;
-}
-
-double Beamform::gccphat(vector<signal_t> &x, vector<signal_t> &x_ref, double fs){
-	size_t N = x.size();
-	unsigned new_N = nextPow2(N);
-	vector<complex<double>> comp_x(new_N) ;
-	vector<complex<double>> comp_x_ref(new_N);
-
-	for (unsigned i = 0; i<N; i++){
-		comp_x[i] = x[i];
-		comp_x_ref[i] = x_ref[i];
-	}
-	fft(comp_x,  FORWARD);
-	fft(comp_x_ref,FORWARD);
-	for (unsigned i = 0; i<new_N; i++){
-		comp_x[i] = comp_x[i]*conj(comp_x_ref[i]);
-	}
-	fft(comp_x , INVERSE);
-
-	double max = 0;
-	int i_max = 0;
-	for (unsigned i = 0; i<new_N; i++){
-		if (comp_x[i].real()>max){
-			max = comp_x[i].real();
-			i_max = i;
-		}
-	}
-	if (i_max>(int)N/2){
-		i_max =  i_max - (int)new_N;
-	}
-
-
-	return (double)i_max / fs;
 }
 
 
@@ -163,6 +132,7 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 		complex<double> j(0,1);
 		for (unsigned i = 0; i<n; i++){
 			W[i] = exp(j * double(2) * m_PI* F * d * cos(theta) / c * n_vec[i])/double(n);
+			cout<<i<<"th weight is "<<W[i]<<endl;
 		}
 	}
 	return W;
@@ -212,11 +182,16 @@ vector<double> Beamform::beamform_Rx( ){
 		//sig_stft = sig_stft + w(i) .* tmp;
 		if ( !i ){
 			sig_stft = tmp;
+			for (unsigned x = 0; x < tmp.size(); x++){
+				for(unsigned y = 0; y < tmp[0].size(); y++){
+					sig_stft[x][y] *= W[i];
+				}
+			}
 		}
 		else {
 			for (unsigned x = 0; x < tmp.size(); x++){
 				for(unsigned y = 0; y < tmp[0].size(); y++){
-					sig_stft[x][y] += tmp[x][y];
+					sig_stft[x][y] += W[i]*tmp[x][y];
 				}
 			}
 		}
@@ -227,9 +202,14 @@ vector<double> Beamform::beamform_Rx( ){
 
 	//Leave only real parts and overlap-and-add
 	vector<double> sig_out(sig_istft.size());
+	double s;
 	for (unsigned i = 0; i < sig_istft.size(); i++) {
-		sig_out[i] = sig_istft[i].real();
+		s = sig_istft[i].real()>0 ? 1 : -1;
+		sig_out[i] = s*abs(sig_istft[i]);
 	}
+
+
+
 	for (unsigned i = 1 ; i < w_len/2; i++){
 		sig_out[i] /=  wnd[i].real();
 		sig_out[sig_out.size() - i] /= wnd[wnd.size() - i].real();
@@ -241,11 +221,12 @@ vector<double> Beamform::beamform_Rx( ){
  //pow_out = sum(sig_istft .^ 2);
   for (unsigned i = 0; i < sgn[0].size() ; i++){
 	 	pow_in += sgn[0][i] * sgn[0][i];
-		pow_out = sig_out[i] * sig_out[i];
+		pow_out += sig_out[i] * sig_out[i];
   }
+	cout<<"power_in = "<<pow_in<< "  pow_out = "<< pow_out<<endl;
  //sig_istft = sig_istft .* sqrt(pow_in / pow_out);
 	for (unsigned i = 0; i < sig_out.size() ; i++){
-		sig_out[i] *= sqrt(pow_in/ pow_out);
+//		sig_out[i] *= sqrt(pow_in/ pow_out);
   }
 	sgn_beamformed = sig_out;
 	return sig_out;

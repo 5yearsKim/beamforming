@@ -15,6 +15,8 @@ private:
   vector<vector<signal_t>> sgn; //2d n x len signal used for beamforming
   vector<signal_t> sgn_1d_origin , sgn_beamformed; // original signal for simulation, beamformed result
   bool DoA;
+  double estimate_DoA();
+  vector<complex<double>> get_weight(double F, int Type);
 public:
   Beamform();
   ~Beamform();
@@ -22,9 +24,6 @@ public:
   void get_signal();
   void set_DoA(bool is_set);
   void status();
-  double estimate_DoA();
-  double gccphat(vector<signal_t> &x, vector<signal_t> &x_ref, double fs);
-  vector<complex<double>> get_weight(double F, int Type);
   vector<double> beamform_Rx( );
   vector<vector<double>> beamform_Tx();
 

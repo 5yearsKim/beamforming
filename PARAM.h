@@ -9,7 +9,8 @@
 #define DSB 0
 #define FIXED 1
 
-#define THETA_INPUT m_PI/2 *1.1 // used when generating signal for simulation
+//simulation default parameter value
+#define THETA_INPUT m_PI/2 * 100/90   // used when generating signal for simulation
 #define FS_INPUT 44100
 #define SPEED_INPUT 340
 #define FREQ_INPUT 7200
