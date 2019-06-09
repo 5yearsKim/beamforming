@@ -20,7 +20,7 @@ Beamform::Beamform(unsigned m_n):
 n(m_n),type(DSB), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
 
 }
-
+// setting input signal for simulation
 void Beamform::get_signal(double s_theta, double n_theta, double snr){
 	signal_t s, noise_element;
 	ifstream s_in("1d_signal.txt"), n_in;
@@ -84,13 +84,7 @@ void Beamform::get_signal(double s_theta, double n_theta, double snr){
 	}
 }
 
-void Beamform::set_DoA(bool is_set){
-	if (is_set == true)
-		DoA = true;
-	else if( is_set == false)
-		DoA = false;
-}
-
+//show variables of class
 void Beamform::status(){
 	for (unsigned i = 0 ; i < 1000 ; i++){
 		cout << i<<"  "<<sgn_1d_origin[i]<<"  "<<sgn_beamformed[i] << "  "<<endl;;
@@ -102,6 +96,7 @@ void Beamform::status(){
 
 }
 
+//estimate direction of source signal
 double Beamform::estimate_DoA(){
 	if (!sgn.size()){
 		cout<<"error::get_signal first"<<endl;
@@ -119,6 +114,7 @@ double Beamform::estimate_DoA(){
 }
 
 
+//weight value is used for time shift of the signal
 vector<complex<double>> Beamform::get_weight(double F, int Type){
 	vector<complex<double>> n_vec;
 
@@ -170,6 +166,8 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 
 }
 
+
+//beamforming receive
 vector<double> Beamform::beamform_Rx( ){
 
 // converting signal_t to complex

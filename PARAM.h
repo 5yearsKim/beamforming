@@ -3,12 +3,18 @@
 
 //parameter list
 #define m_PI 3.141592
+
+//for FFT
 #define FORWARD 0
 #define INVERSE 1
 
+
+//estimation type
 #define DSB 0
 #define FIXED 1
 
+
+//noise type
 #define AWGN 0
 #define OFDM 1
 
@@ -19,9 +25,9 @@
 #define FREQ_INPUT 7200
 #define DISTANCE_INPUT 0.02
 #define N_OF_SENSOR 4
-#define DOA true // whether simulation estimate direction or not
+#define DOA false // whether simulation estimate direction or not
 
-#define NOISE AWGN 
+#define NOISE AWGN
 
 
 #endif
