@@ -9,34 +9,65 @@
 
 
 Beamform::Beamform():
-n(N_OF_SENSOR), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), type(DSB), DoA(DOA){
+n(N_OF_SENSOR),type(DSB), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
 
 }
 Beamform::~Beamform(){
 
 }
 
-Beamform::Beamform(unsigned m_n, double m_d, double m_f, double m_c, double m_fs):
-n(m_n), d(m_d), f(m_f), c(m_c), fs(m_fs) , DoA(true), type(DSB), theta(THETA_INPUT){
+Beamform::Beamform(unsigned m_n):
+n(m_n),type(DSB), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
 
 }
 
-void Beamform::get_signal(){
-	signal_t s;
-	ifstream in("1Dnoisy_signal.txt");
+void Beamform::get_signal(double s_theta, double n_theta, double snr){
+	signal_t s, noise_element;
+	ifstream s_in("1d_signal.txt"), n_in;
+	if (noise_type == AWGN){
+		n_in.open("AWGN.txt");
+	}
+	else if (noise_type == OFDM){
+		n_in.open("OFDM.txt");
+	}
+	else{
+		cout<<"noise file open error"<<endl;
+	}
+
+	vector<signal_t> m_noise;
 	unsigned len_max = 100000;
-	if(in.is_open()){
-		cout<<"get_signal:getting signal successful"<<endl;
-		while(!in.eof()){
-			in >>s;
+	signal_t pow_noise(0), pow_sig(0);
+	if(s_in.is_open() && n_in.is_open()){
+		while(!s_in.eof() && !n_in.eof()){
+			s_in >> s;
+			n_in >> noise_element;
 			sgn_1d_origin.push_back(s);
-			if (sgn_1d_origin.size()>len_max)
+			m_noise.push_back(noise_element);
+			//power calculation for fitting snr
+			pow_sig += s * s;
+			pow_noise += noise_element * noise_element;
+			if (sgn_1d_origin.size()>len_max){
+				cout<<"get_signal:getting signal successful"<<endl;
 				break;
+			}
 		}
 	}
-	cout<<"generating "<<n<<" x len"<<" 2D signal for simulation\n theta: = "<<theta<<endl;
-	sgn = gen_arr_sig(sgn_1d_origin, n , d ,theta, c,  fs);
-	if (sgn.size() >0){ cout<<"signal received successfully"<<endl;}
+	//power setting for noise
+	for (unsigned i = 0; i< m_noise.size(); i++){
+		m_noise[i] *= sqrt(pow_sig/ pow_noise / pow(10, snr/10));
+	}
+	//generating signal - noise mixed 2D array for STFT
+	cout<<"generating "<<n<<" x len"<<" 2D signal for simulation\n sig theta: = "<<s_theta<<"  noise theta: = "<<n_theta<<endl;
+	sgn = gen_arr_sig(sgn_1d_origin, n , d ,s_theta, c,  fs);
+	vector<vector<signal_t>> noise_2d =  gen_arr_sig(m_noise, n , d ,n_theta, c,  fs);
+	//add noise to original signal for simulation
+	for (unsigned i = 0; i < sgn.size() ; i++){
+		for (unsigned j = 0; j< sgn[0].size(); j++){
+			sgn[i][j] += noise_2d[i][j];
+		}
+	}
+
+	if (sgn.size() >0 && sgn[0].size()>0){ cout<<"signal received successfully"<<endl;}
 
 	ofstream f("2Dnoisy_signal.txt");
 	for (unsigned  j= 0; j<sgn[0].size(); j++){
@@ -132,7 +163,7 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 		complex<double> j(0,1);
 		for (unsigned i = 0; i<n; i++){
 			W[i] = exp(j * double(2) * m_PI* F * d * cos(theta) / c * n_vec[i])/double(n);
-			cout<<i<<"th weight is "<<W[i]<<endl;
+		//	cout<<i<<"th weight is "<<W[i]<<endl;
 		}
 	}
 	return W;
@@ -223,7 +254,7 @@ vector<double> Beamform::beamform_Rx( ){
 	 	pow_in += sgn[0][i] * sgn[0][i];
 		pow_out += sig_out[i] * sig_out[i];
   }
-	cout<<"power_in = "<<pow_in<< "  pow_out = "<< pow_out<<endl;
+//	cout<<"power_in = "<<pow_in<< "  pow_out = "<< pow_out<<endl;
  //sig_istft = sig_istft .* sqrt(pow_in / pow_out);
 	for (unsigned i = 0; i < sig_out.size() ; i++){
 //		sig_out[i] *= sqrt(pow_in/ pow_out);
