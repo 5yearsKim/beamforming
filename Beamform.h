@@ -2,9 +2,13 @@
 #define _BEAMFORM_H_
 #include<vector>
 
+using namespace std;
+
+#include "Matrix.h"
 #include "Dtype.h"
 #include "PARAM.h"
-using namespace std;
+#include "fft.h"
+
 
 
 

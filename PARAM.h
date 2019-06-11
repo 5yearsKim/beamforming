@@ -26,6 +26,7 @@
 #define DISTANCE_INPUT 0.02
 #define N_OF_SENSOR 4
 #define DOA false // whether simulation estimate direction or not
+#define TEST_TYPE FIXED
 
 #define NOISE AWGN
 

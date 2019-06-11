@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-g -Wall -DDEBUG
+CFLAGS= -Wall -DDEBUG
 LDFLAGS=
 RM=mv -t ~/Trash
 

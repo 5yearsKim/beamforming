@@ -4,12 +4,11 @@
 #include <fstream>
 
 #include "Beamform.h"
-#include "fft.h"
 
 
 
 Beamform::Beamform():
-n(N_OF_SENSOR),type(DSB), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
+n(N_OF_SENSOR),type(TEST_TYPE), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
 
 }
 Beamform::~Beamform(){
@@ -17,7 +16,7 @@ Beamform::~Beamform(){
 }
 
 Beamform::Beamform(unsigned m_n):
-n(m_n),type(DSB), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
+n(m_n),type(FIXED), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
 
 }
 // setting input signal for simulation
@@ -117,14 +116,14 @@ double Beamform::estimate_DoA(){
 //weight value is used for time shift of the signal
 vector<complex<double>> Beamform::get_weight(double F, int Type){
 	vector<complex<double>> n_vec;
-
+	complex<double> Imag(0,1);
 	for (unsigned i = 0; i<n; i++){
-		n_vec.push_back(double(i));
+		n_vec.push_back(complex<double>(i));
 	}
 
 	vector<complex<double>> W(n);
 	if (Type == FIXED){
-	/*	vector<complex<double>> spatial_sample(37) ;
+		vector<complex<double>> spatial_sample(37) ;
 		for (unsigned i = 0 ; i<=36 ; i++ ) {
 			spatial_sample[i] = double(i)/36 *m_PI;
 		}
@@ -135,21 +134,54 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 		r_d[20] = 1;
 		r_d[21] = 1;
 		//A = exp(-1i * 2 * pi * n_vec * F * d * cos(spatial_sample) / c);
-		vector<vector<complex<double>>> A;
+		vector<vector<complex<double>>> A, A_H, temp, inv_temp ;
+		vector<complex<double>> temp2;
 		for (unsigned i = 0; i < n; i++){
-			vector<complex<double>> v(37), u(37);
+			vector<complex<double>> v(37), u(37), v2(n), v3(n);
 			A.push_back(v);
 			A_H.push_back(u);
+			temp.push_back(v2);
+			inv_temp.push_back(v3);
 		}
 		for (unsigned i = 0 ; i<n ; i++ ) {
 			for (unsigned j = 0; j <= 36; j++){
-				A[i][j] = exp(-1i * 2 * m_PI * n_vec[i] * F * d * cos(spatial_sample[j]) / c);
+				A[i][j] = exp(-Imag* complex<double>(2) * complex<double>(m_PI) * n_vec[i] *complex<double>(F) * complex<double>(d) * cos(spatial_sample[j]) / complex<double>(c));
 				A_H[i][j] = conj(A[i][j]);
 			}
 		}
-		// challanged at matrix inverse.. giving up here
+		temp = A;
+		for (unsigned i = 0 ; i<n ; i++ ) {
+			for (unsigned j = 0; j < n; j++){
+				for (unsigned k = 0; k <=36; k++){
+					temp[i][j] += A[i][k] * A[j][k];
+				}
+			}
+		}
+		inverse(temp, inv_temp);
+		complex<double> t;
+		for (unsigned j = 0; j < n; j++){
+			t = 0;
+			for (unsigned k = 0; k <=36; k++){
+				t += 	A[j][k] * r_d[k];
+			}
+			temp2.push_back(t);
+		}
 
-		*/
+		for (unsigned j = 0; j < n; j++){
+			for (unsigned k = 0; k < n; k++){
+				W[j] += inv_temp[j][k]*temp2[k];
+			}
+		}
+		complex<double> sum;
+		for (unsigned i = 0; i < n; i++){
+			sum += W[i];
+		}
+		for (unsigned i = 0; i < n; i++){
+			W[i] /= sum;
+		}
+		return W;
+
+
 		}
 	else{
 		if (Type != DSB){
