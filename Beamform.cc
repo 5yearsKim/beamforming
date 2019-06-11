@@ -231,10 +231,8 @@ vector<double> Beamform::beamform_Rx( ){
 
 	//Leave only real parts and overlap-and-add
 	vector<double> sig_out(sig_istft.size());
-	double s;
 	for (unsigned i = 0; i < sig_istft.size(); i++) {
-		s = sig_istft[i].real()>0 ? 1 : -1;
-		sig_out[i] = s*abs(sig_istft[i]);
+		sig_out[i] = sig_istft[i].real();
 	}
 
 
