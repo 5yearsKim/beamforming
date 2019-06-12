@@ -5,3 +5,7 @@ translating matlab code to C
 
 make;
 ./run
+
+
+#usage
+change parameter through "PARAM.h". every beamform class's parameter is initialize with that values.
