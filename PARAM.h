@@ -19,16 +19,16 @@
 #define OFDM 1
 
 //simulation default parameter value
-#define THETA_INPUT m_PI/2 * 100/90   // used when generating signal for simulation
+#define THETA_INPUT m_PI/2 *80 / 90  // used when generating signal for simulation
 #define FS_INPUT 44100
 #define SPEED_INPUT 340
 #define FREQ_INPUT 7200
 #define DISTANCE_INPUT 0.02
 #define N_OF_SENSOR 4
-#define DOA false // whether simulation estimate direction or not
-#define TEST_TYPE FIXED
+#define DOA true // whether simulation estimate direction or not
+#define TEST_TYPE DSB
 
-#define NOISE AWGN
+#define NOISE OFDM
 
 
 #endif

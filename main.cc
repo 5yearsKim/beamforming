@@ -3,7 +3,7 @@
 #include <cmath>
 #include <complex>
 #include <vector>
-
+#include <fstream>
 using namespace std;
 
 #include "fft.h"
@@ -11,7 +11,7 @@ using namespace std;
 
 int main(){
 
-  int experiment = 2;  //experiment 1: changing theta of noise, experiment 2 : chainging input snr
+  int experiment = 1;  //experiment 1: changing theta of noise, experiment 2 : chainging input snr
   vector<int> NoS; //number of sensor
   vector<double> theta, target_snr; //number of sensor, snr as variable
   for (unsigned i = 2; i<=5; i++){
@@ -23,14 +23,30 @@ int main(){
   for (int i = -10; i<=20; i = i + 2){
     target_snr.push_back(i);
   }
-  if (experiment == 1){
+  if (experiment == 0){
+    double snr = 10;
+    Beamform bf;
+    bf.get_signal(THETA_INPUT, m_PI/3, snr);
+    vector<signal_t> beam_rec = bf.beamform_Rx( );
+    //record the result
+    ofstream f("Beamformed_result.txt");
+    for (unsigned i = 0; i< beam_rec.size(); i++){
+      f<<beam_rec[i]<<endl;
+    }
+
+    if(f.is_open()==true){
+    	f.close();
+    }
+
+  }
+  else if (experiment == 1){
     double snr = 10, snri;
     vector<vector<double>> results;
     for (unsigned i = 0 ; i < NoS.size(); i++){
       vector<double> resi; // result vector of ith index
       for (unsigned j = 0; j<theta.size(); j++){
         Beamform bf(NoS[i]); // create beamform that has N[i] sensors
-        bf.get_signal(m_PI/2, theta[j], snr);
+        bf.get_signal(THETA_INPUT, theta[j], snr);
         vector<signal_t> beam_rec = bf.beamform_Rx( ); // beamforming signal
 
         //power calculation to get snr
@@ -45,13 +61,25 @@ int main(){
       results.push_back(resi);
     }
 
-    for (unsigned i = 0; i< NoS.size(); i++){
-      cout<<"\n\n=============n==========="<<NoS[i]<<"=========="<<endl;
-      for (unsigned j = 0; j< theta.size(); j++){
-        cout <<"  (theta: "<< 10*j + 1 << " >> " <<results[i][j];
-      }
-    }
+//record the result
+
+    ofstream f("Experiment1_result.txt");
+  	for (unsigned i = 0; i< NoS.size(); i++){
+      f<<"\n\n=============n==========="<<NoS[i]<<"=========="<<endl;
+  		for (unsigned j = 0; j< theta.size(); j++){
+  			f <<"  (theta: "<< 10*j + 1 << " >> " <<results[i][j]<<endl;
+  		}
+  		f<<"\n";
+  	}
+
+  	if(f.is_open()==true)
+  	{
+  		f.close();
+  	}
   }
+
+
+
   else if (experiment == 2){
     double  snri;
     vector<vector<double>> results;
@@ -59,7 +87,7 @@ int main(){
       vector<double> resi; // result vector of ith index
       for (unsigned j = 0; j<target_snr.size(); j++){
         Beamform bf(NoS[i]); // create beamform that has N[i] sensors
-        bf.get_signal(m_PI/2, m_PI, target_snr[j]);
+        bf.get_signal(THETA_INPUT, m_PI, target_snr[j]);
         vector<signal_t> beam_rec = bf.beamform_Rx( ); // beamforming signal
 
         //power calculation to get snr
@@ -75,14 +103,19 @@ int main(){
       results.push_back(resi);
     }
 
+//record the result
+    ofstream f("Experiment2_result.txt");
     for (unsigned i = 0; i< NoS.size(); i++){
-      cout<<"\n\n=============n==========="<<NoS[i]<<"=========="<<endl;
-      for (unsigned j = 0; j< target_snr.size(); j++){
-        cout <<"  (target_snr: "<< -10 + 2*int(j) << " >> " <<results[i][j];
-      }
+      f<<"\n\n=============n==========="<<NoS[i]<<"=========="<<endl;
+    	for (unsigned j = 0; j< target_snr.size(); j++){
+    		f <<"  (target_snr: "<< -10 + 2*int(j) << " >> " <<results[i][j]<<endl;
+    	}
+    	f<<"\n";
     }
 
-
+    if(f.is_open()==true){
+    	f.close();
+    }
   }
 
   return 0;

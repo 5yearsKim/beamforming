@@ -16,7 +16,7 @@ Beamform::~Beamform(){
 }
 
 Beamform::Beamform(unsigned m_n):
-n(m_n),type(FIXED), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
+n(m_n),type(TEST_TYPE), noise_type(NOISE), d(DISTANCE_INPUT), f(FREQ_INPUT), c(SPEED_INPUT), fs(FS_INPUT), theta(THETA_INPUT), DoA(DOA){
 
 }
 // setting input signal for simulation
@@ -104,6 +104,7 @@ double Beamform::estimate_DoA(){
 	double tau_est(0);
 	for (unsigned i = 0; i<n-1 ; i++){
 		tau_est += gccphat(sgn[i+1], sgn[i], fs);
+		cout<<i<<"  "<<gccphat(sgn[i+1], sgn[i], fs)<<endl;
 	}
 	tau_est /= (n-1);
 
@@ -123,6 +124,7 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 
 	vector<complex<double>> W(n);
 	if (Type == FIXED){
+		cout<<"TYPE is Fixed"<<endl;
 		vector<complex<double>> spatial_sample(37) ;
 		for (unsigned i = 0 ; i<=36 ; i++ ) {
 			spatial_sample[i] = double(i)/36 *m_PI;
@@ -179,6 +181,7 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 		for (unsigned i = 0; i < n; i++){
 			W[i] /= sum;
 		}
+
 		return W;
 
 
@@ -191,7 +194,8 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 		complex<double> j(0,1);
 		for (unsigned i = 0; i<n; i++){
 			W[i] = exp(j * double(2) * m_PI* F * d * cos(theta) / c * n_vec[i])/double(n);
-		//	cout<<i<<"th weight is "<<W[i]<<endl;
+			cout<<i<<"th weight is "<<W[i]<<endl;
+			cout<<"cos(theta)="<<cos(theta)<<endl;
 		}
 	}
 	return W;
@@ -224,6 +228,7 @@ vector<double> Beamform::beamform_Rx( ){
 		}
 		else {
 			theta = theta_est;
+			cout<<theta<<"  "<<theta_est<<endl;
 		}
 	}
 	else {
@@ -241,7 +246,7 @@ vector<double> Beamform::beamform_Rx( ){
 	for (unsigned i = 0 ; i<n ; i++){
 		tmp = STFT(m_sgn[i], w_len, w_len/2, wnd);
 		//sig_stft = sig_stft + w(i) .* tmp;
-		if ( !i ){
+		if ( !i ){ //first initialization
 			sig_stft = tmp;
 			for (unsigned x = 0; x < tmp.size(); x++){
 				for(unsigned y = 0; y < tmp[0].size(); y++){
@@ -285,7 +290,7 @@ vector<double> Beamform::beamform_Rx( ){
 //	cout<<"power_in = "<<pow_in<< "  pow_out = "<< pow_out<<endl;
  //sig_istft = sig_istft .* sqrt(pow_in / pow_out);
 	for (unsigned i = 0; i < sig_out.size() ; i++){
-//		sig_out[i] *= sqrt(pow_in/ pow_out);
+		sig_out[i] *= sqrt(pow_in/ pow_out);
   }
 	sgn_beamformed = sig_out;
 	return sig_out;

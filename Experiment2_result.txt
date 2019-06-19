@@ -1,0 +1,16 @@
+
+
+=============n===========2==========
+  (target_snr: -10 >> 0.453403  (target_snr: -8 >> 0.693869  (target_snr: -6 >> 1.04861  (target_snr: -4 >> 1.55632  (target_snr: -2 >> 2.25495  (target_snr: 0 >> 3.17213  (target_snr: 2 >> 4.31612  (target_snr: 4 >> 5.67274  (target_snr: 6 >> 7.21056  (target_snr: 8 >> 8.89056  (target_snr: 10 >> 10.6751  (target_snr: 12 >> 12.5329  (target_snr: 14 >> 14.4402  (target_snr: 16 >> 16.3803  (target_snr: 18 >> 18.3418  (target_snr: 20 >> 20.317
+
+
+=============n===========3==========
+  (target_snr: -10 >> 0.887739  (target_snr: -8 >> 1.33455  (target_snr: -6 >> 1.96039  (target_snr: -4 >> 2.79813  (target_snr: -2 >> 3.86379  (target_snr: 0 >> 5.15074  (target_snr: 2 >> 6.6322  (target_snr: 4 >> 8.27014  (target_snr: 6 >> 10.0252  (target_snr: 8 >> 11.8634  (target_snr: 10 >> 13.7582  (target_snr: 12 >> 15.6905  (target_snr: 14 >> 17.6474  (target_snr: 16 >> 19.6199  (target_snr: 18 >> 21.6026  (target_snr: 20 >> 23.5916
+
+
+=============n===========4==========
+  (target_snr: -10 >> 1.02278  (target_snr: -8 >> 1.5264  (target_snr: -6 >> 2.22155  (target_snr: -4 >> 3.13639  (target_snr: -2 >> 4.27948  (target_snr: 0 >> 5.63662  (target_snr: 2 >> 7.176  (target_snr: 4 >> 8.85816  (target_snr: 6 >> 10.6451  (target_snr: 8 >> 12.5051  (target_snr: 10 >> 14.4145  (target_snr: 12 >> 16.3564  (target_snr: 14 >> 18.3194  (target_snr: 16 >> 20.2959  (target_snr: 18 >> 22.2811  (target_snr: 20 >> 24.2717
+
+
+=============n===========5==========
+  (target_snr: -10 >> 1.4339  (target_snr: -8 >> 2.09352  (target_snr: -6 >> 2.96859  (target_snr: -4 >> 4.07155  (target_snr: -2 >> 5.3921  (target_snr: 0 >> 6.90105  (target_snr: 2 >> 8.55973  (target_snr: 4 >> 10.3295  (target_snr: 6 >> 12.1775  (target_snr: 8 >> 14.0787  (target_snr: 10 >> 16.015  (target_snr: 12 >> 17.9743  (target_snr: 14 >> 19.9483  (target_snr: 16 >> 21.9318  (target_snr: 18 >> 23.9213  (target_snr: 20 >> 25.9146
