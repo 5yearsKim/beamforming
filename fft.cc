@@ -149,33 +149,47 @@ vector<complex<double>> iSTFT(vector<vector<complex<double>>> &sgn, size_t frm_l
 }
 
 
-vector<vector<double>> gen_arr_sig(vector<double> &in_sgn, unsigned N, double D, double Theta, double C, double fs){
-  vector<double> tau;
+vector<vector<double>> gen_arr_sig(vector<double> &in_sgn_double, unsigned N, double D, double Theta, double C, double fs){
+  vector<double> tau, f_vec;
+	int w_len = 512;
+	vector<complex<double>> in_sgn(in_sgn_double.begin(), in_sgn_double.end());
   for (unsigned i = 0; i<N; i++){
-    tau.push_back( D*double(i)*cos(Theta)*fs /C);
-	//	cout<<tau[i]<< "  ";
+    tau.push_back( D*double(i)*cos(Theta) /C);
   }
-  if (tau[N-1] > in_sgn.size() ){
-    cout<<"gen_arr_sig error::input is too sall or some value is wrong"<<endl;
-    exit(1);
-  }
+	for (double i = 0.0; i <= w_len/2; i++){
+		f_vec.push_back(i*fs/w_len);
+	}
+	vector<complex<double>> wnd = hann(w_len);
+	vector<vector<complex<double>>> sig_stft = STFT(in_sgn, w_len, w_len/2, wnd);
+
   vector<vector<double>> arr_sig;
+	complex<double> imag(0.0 , 1.0);
   //initialize arr_sig
   for (unsigned i = 0; i<N; i++){
-    vector<double> v(in_sgn.size());
-    //    arr_signal(i, 1 + tau(i): end) = Signal(1 : end - (tau(i)));
-		if (Theta <=m_PI/2){
-			for (unsigned j = int(round(tau[i])); j<in_sgn.size(); j++){
-	      v[j] = in_sgn[ j - int(round(tau[i]))  ];
-	    }
-			arr_sig.push_back(v);
+  	vector<complex<double>> delay;
+		vector<vector<complex<double>>> sig_delay;
+		for (unsigned m = 0; m < sig_stft.size(); m++ ){
+			vector<complex<double>> v(sig_stft[0].size());
+			sig_delay.push_back(v);
 		}
-		else {
-			for (unsigned j = 0; j<in_sgn.size() + int(round(tau[i])); j++){
-				v[j] = in_sgn[ j - int(round(tau[i]))  ];
+		for (unsigned m = 0 ; m < f_vec.size(); m++ ){
+			delay.push_back(exp(- imag * 2.0* m_PI* f_vec[m]* tau[i]));
+		}
+		for (unsigned n = 0; n < sig_stft.size(); n++ ){
+			for (unsigned m = 0; m < f_vec.size(); m++){
+				sig_delay[n][m] = sig_stft[n][m] * delay[m];
 			}
-			arr_sig.push_back(v);
+
+			for (unsigned m = 1; m< f_vec.size() - 1; m++){
+				sig_delay[n][w_len - m ] = conj(sig_delay[n][m]);
+			}
 		}
+		vector<complex<double>> sig_istft = iSTFT(sig_delay, w_len, w_len/2);
+		vector<signal_t> sig_result(sig_istft.size());
+		for (unsigned n = 0; n < sig_result.size(); n++){
+			sig_result[n] = sig_istft[n].real();
+		}
+		arr_sig.push_back(sig_result);
   }
 
 	return arr_sig;

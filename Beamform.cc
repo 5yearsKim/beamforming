@@ -101,29 +101,35 @@ double Beamform::estimate_DoA(){
 		cout<<"error::get_signal first"<<endl;
 		return 0;
 	}
-	double tau_est(0);
+	vector<double> tau_est;
 	for (unsigned i = 0; i<n-1 ; i++){
-		tau_est += gccphat(sgn[i+1], sgn[i], fs);
-		cout<<i<<"  "<<gccphat(sgn[i+1], sgn[i], fs)<<endl;
+		tau_est.push_back(gccphat(sgn[i+1], sgn[i], fs));
+		tau_est[i] /= i+1;
 	}
-	tau_est /= (n-1);
+	double max_tau = 0;
+	for(unsigned i = 0 ; i < tau_est.size(); i++){
+		if (abs(max_tau) < abs(tau_est[i])){
+			max_tau  = tau_est[i];
+		}
+	}
 
-	double Theta_est = acos(c * tau_est / d);
+	double Theta_est = acos(c * max_tau / d);
 
 	return Theta_est;
 }
 
 
 //weight value is used for time shift of the signal
-vector<complex<double>> Beamform::get_weight(double F, int Type){
+vector<vector<complex<double>>> Beamform::get_weight(vector<double> F_vec, int Type){
 	vector<complex<double>> n_vec;
 	complex<double> Imag(0,1);
 	for (unsigned i = 0; i<n; i++){
 		n_vec.push_back(complex<double>(i));
 	}
 
-	vector<complex<double>> W(n);
 	if (Type == FIXED){
+		vector<complex<double>> W(n);
+		double F(FS_INPUT) ;
 		cout<<"TYPE is Fixed"<<endl;
 		vector<complex<double>> spatial_sample(37) ;
 		for (unsigned i = 0 ; i<=36 ; i++ ) {
@@ -181,8 +187,13 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 		for (unsigned i = 0; i < n; i++){
 			W[i] /= sum;
 		}
+		vector<vector<complex<double>>> W_vec;
+		for (unsigned i = 0; i < n; i++){
+			vector<complex<double>> v(F_vec.size(), W[i]);
+			W_vec.push_back(v);
+		}
 
-		return W;
+		return W_vec;
 
 
 		}
@@ -190,16 +201,20 @@ vector<complex<double>> Beamform::get_weight(double F, int Type){
 		if (Type != DSB){
 			cout<<"error! Type "<< Type<< "doesn't exist"<<endl;
 		}
-		//W = (1 / n) .* exp(1i * 2 * pi * n_vec * F * d * cos(theta) / c);
-		complex<double> j(0,1);
+		//    W = (1 / n) .* exp(1i * 2 * pi * n_vec * F_vec * d * cos(theta) / c);
+		vector<vector<complex<double>>> W_vec;
+		complex<double> imag(0,1.0);
 		for (unsigned i = 0; i<n; i++){
-			W[i] = exp(j * double(2) * m_PI* F * d * cos(theta) / c * n_vec[i])/double(n);
-			cout<<i<<"th weight is "<<W[i]<<endl;
-			cout<<"cos(theta)="<<cos(theta)<<endl;
+			vector<complex<double>> W;
+			W_vec.push_back(W);
+			for (unsigned j = 0 ; j < F_vec.size(); j++){
+				W_vec[i].push_back(exp(imag * 2.0 * m_PI* F_vec[j] * d * cos(theta) * n_vec[i] / c )/double(n) );
+//			cout<<i<<"th weight is "<<W[i]<<endl;
+//			cout<<"cos(theta)="<<cos(theta)<<endl;
+			}
 		}
+		return W_vec;
 	}
-	return W;
-
 }
 
 
@@ -228,18 +243,21 @@ vector<double> Beamform::beamform_Rx( ){
 		}
 		else {
 			theta = theta_est;
-			cout<<theta<<"  "<<theta_est<<endl;
+			cout<<"estimated DOA is "<<theta_est<<endl;
 		}
 	}
 	else {
 		theta = m_PI/2;
 	}
-
+	unsigned w_len = 512;
+	vector<double> F_vec;
+	for (double i = 0.0; i <= w_len/2; i++){
+		F_vec.push_back(i*fs/w_len);
+	}
 //get beamformer weight
-	vector<complex<double>> W = get_weight(f, type);
+	vector<vector<complex<double>>> W = get_weight(F_vec, type);
 
 //Beamforming - compensating the delays of the signals
-	unsigned w_len = 512;
 	vector<complex<double>> wnd = hann(w_len);
 	vector<vector<complex<double>>> sig_stft, tmp;
 
@@ -249,18 +267,25 @@ vector<double> Beamform::beamform_Rx( ){
 		if ( !i ){ //first initialization
 			sig_stft = tmp;
 			for (unsigned x = 0; x < tmp.size(); x++){
-				for(unsigned y = 0; y < tmp[0].size(); y++){
-					sig_stft[x][y] *= W[i];
+				for(unsigned y = 0; y < F_vec.size(); y++){
+					sig_stft[x][y] *= W[i][y];
 				}
 			}
 		}
 		else {
 			for (unsigned x = 0; x < tmp.size(); x++){
-				for(unsigned y = 0; y < tmp[0].size(); y++){
-					sig_stft[x][y] += W[i]*tmp[x][y];
+				for(unsigned y = 0; y < F_vec.size(); y++){
+					sig_stft[x][y] += W[i][y]*tmp[x][y];
 				}
 			}
 		}
+		for (unsigned x = 0; x < tmp.size(); x++){
+			for(unsigned y = 1; y < F_vec.size() - 1; y++){
+			 	sig_stft[x][w_len - y] = conj(sig_stft[x][y]);
+			}
+		}
+
+
 
 	}
 	//ISTFT to get beamformed signal
@@ -298,5 +323,5 @@ vector<double> Beamform::beamform_Rx( ){
 
 //beamforming transimission
 vector<vector<double>> Beamform::beamform_Tx(){
-	return  gen_arr_sig(sgn_beamformed, n, d,theta, c, fs);
+	return  gen_arr_sig(sgn_beamformed, n, d,theta	, c, fs);
 }

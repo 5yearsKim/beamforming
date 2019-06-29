@@ -2,7 +2,7 @@
 #define _PARAM_H_
 
 //parameter list
-#define m_PI 3.141592
+#define m_PI 3.1415926536
 
 //for FFT
 #define FORWARD 0
@@ -19,7 +19,7 @@
 #define OFDM 1
 
 //simulation default parameter value
-#define THETA_INPUT m_PI/2 *80 / 90  // used when generating signal for simulation
+#define THETA_INPUT m_PI/2 // used when generating signal for simulation
 #define FS_INPUT 44100
 #define SPEED_INPUT 340
 #define FREQ_INPUT 7200

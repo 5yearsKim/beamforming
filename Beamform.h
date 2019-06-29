@@ -19,7 +19,7 @@ private:
   vector<vector<signal_t>> sgn; //2d n x len signal used for beamforming
   bool DoA;// direction estimation
   double estimate_DoA(); //estimate direction of source signal
-  vector<complex<double>> get_weight(double F, int Type); // weight calculation function
+  vector<vector<complex<double>>> get_weight(vector<double> F_vec, int Type); // weight calculation function
 public:
   vector<signal_t> sgn_1d_origin , sgn_beamformed; // original signal for simulation, beamformed result
   Beamform();

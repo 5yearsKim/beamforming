@@ -10,8 +10,21 @@ using namespace std;
 #include "Beamform.h"
 
 int main(){
+/*
+  vector<signal_t> test;
+  for (unsigned i = 0 ; i <1024; i++){
+    test.push_back(double(i));
+  }
+  vector<vector<double>> result = gen_arr_sig( test,  4, DISTANCE_INPUT, m_PI *70/90, SPEED_INPUT, FS_INPUT);
+  for (unsigned i = 0 ; i < result[0].size(); i++){
+    for (unsigned j = 0 ; j< 4; j++){
+      cout<< result[j][i]<<"  ";
+    }
+    cout<<endl;
+  }
+*/
 
-  int experiment = 1;  //experiment 1: changing theta of noise, experiment 2 : chainging input snr
+  int experiment = 2;  //experiment 1: changing theta of noise, experiment 2 : chainging input snr
   vector<int> NoS; //number of sensor
   vector<double> theta, target_snr; //number of sensor, snr as variable
   for (unsigned i = 2; i<=5; i++){
@@ -26,7 +39,7 @@ int main(){
   if (experiment == 0){
     double snr = 10;
     Beamform bf;
-    bf.get_signal(THETA_INPUT, m_PI/3, snr);
+    bf.get_signal(THETA_INPUT, m_PI/4, snr);
     vector<signal_t> beam_rec = bf.beamform_Rx( );
     //record the result
     ofstream f("Beamformed_result.txt");
@@ -87,7 +100,7 @@ int main(){
       vector<double> resi; // result vector of ith index
       for (unsigned j = 0; j<target_snr.size(); j++){
         Beamform bf(NoS[i]); // create beamform that has N[i] sensors
-        bf.get_signal(THETA_INPUT, m_PI, target_snr[j]);
+        bf.get_signal(THETA_INPUT, m_PI/3, target_snr[j]);
         vector<signal_t> beam_rec = bf.beamform_Rx( ); // beamforming signal
 
         //power calculation to get snr
