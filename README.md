@@ -1,5 +1,5 @@
-# mat2c
-translating matlab code to C
+# beamforming
+translating matlab simulation code to C
 
 # describtion
 beamforming algorithm using STFT tims-shift
